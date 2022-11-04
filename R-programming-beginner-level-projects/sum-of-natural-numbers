@@ -1,0 +1,19 @@
+# Beginner level projects
+
+# Project 2: Sum of Natural Numbers (source: datamentor.io)
+
+sum_natural_numbers <- function(n){
+  ans <- 0
+  if(n < 0){ print("Enter a positive number")}
+  else{
+    while (n > 0) {
+      ans <- ans + n
+      n <- n - 1
+    }
+    cat("The sum of", number, "Natural numbers is ", result)
+  }
+}
+
+number <- as.integer(readline(prompt = "Enter number: "))
+result <- sapply(number, sum_natural_numbers)
+

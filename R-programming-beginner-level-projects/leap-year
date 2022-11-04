@@ -1,0 +1,20 @@
+# Beginner level projects
+
+# Project 4: Check leap year (Source: datamentor.io)
+
+leap_year <- function(year){
+  if((year %% 4) == 0){
+  if((year %% 100) == 0){
+  if((year %% 400) == 0){
+    print(paste(year,"is a leap year!"))}
+  else{
+    print(paste(year,"is a non-leap year!"))}
+  }else{
+    print(paste(year,"is a leap year"))}
+  }else{
+    print(paste(year,"is a non-leap year"))}
+}
+
+year <- as.integer(readline(prompt = "Enter the year: "))
+result <- sapply(year, leap_year)
+

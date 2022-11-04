@@ -1,0 +1,63 @@
+# Beginner level projects
+
+# Project 6: Using Recusrive Function (Source: data-flair.training)
+
+# factorial 
+
+fact <- function(n){
+  if(n <= 1){
+    return(1)
+  }
+  else{
+    return(n * fact(n-1))
+  }
+}
+
+fact(5)
+## output is 120
+
+# sum of natural numbers
+
+sum_numbers <- function(n){
+  if(n <= 1){
+    return(1)
+  }
+  else{
+    return(n + sum_numbers(n-1))
+  }
+}
+
+sum_numbers(10)
+## output is 55
+
+# Sum of Squares
+square_sum <- function(n){
+  if(n == 0){
+    return(0)
+  }
+  else{
+    return((n^2) + square_sum(n-1))
+  }
+}
+
+square_sum(4)
+## Output is 30
+
+# Fibonacci Series
+fibonacci <- function(n){
+   if(n == 0){return(0)}  
+   else if( n == 1){
+    return(1)
+  }
+  else{
+    return(fibonacci(n-1) + fibonacci(n-2))
+    }
+}
+
+## for loop is used to iterate the values for a list. 
+n <- 15
+for(i in 0:(n-1)){
+print(fibonacci(i))
+}
+
+## Output is the list

@@ -1,0 +1,39 @@
+# Beginner level projects
+
+# Project 5: Finding LCM or GCD (Source: datamentor.io)
+
+gcd <- function(x,y){
+  gcd <- 0
+  if(x > y){
+    smaller <- y
+    }
+  else{
+    smaller <- x 
+    }
+  for (i in 1:smaller) {
+    if((x %% i == 0) && (y %% i == 0)){
+      gcd <- i
+    } 
+  }
+  print(paste("The GCD of",x,"and",y,"is", gcd))
+}
+
+lcm <- function(x,y){
+  lcm <- 0
+  if(x>y){greater <- x}
+  else{greater <- y}
+  while (TRUE) {
+    if((greater %% x == 0) && (greater %% y == 0)){
+      lcm <- greater
+      break
+    }
+    greater <- greater + 1
+  }
+  print(paste("The LCM of",x,"and",y,"is", lcm))
+}
+
+
+num1 <- as.integer(readline(prompt = "Enter x value: "))
+num2 <- as.integer(readline(prompt = "Enter y value: "))
+gcd(num1,num2)
+lcm(num1,num2)

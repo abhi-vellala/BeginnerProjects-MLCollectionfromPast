@@ -1,0 +1,39 @@
+# Beginner level projects
+
+# Project 1: Building a simple calculator ( Source: datamentor.io)
+
+add <- function(x,y){
+  ans <- x + y
+  return(ans)
+}
+
+subract <- function(x,y){
+  ans <- x - y
+  return(ans)
+}
+
+multiply <- function(x,y){
+  ans <- x * y
+  return(ans)
+}
+
+divide <- function(x,y){
+  ans <- x/y
+  return(ans)
+}
+
+power <- function(x,y){
+  ans <- x^y
+  return(ans)
+}
+
+# inputs from user
+cat("Choose the operation \n 1. Add \n 2. Subract \n 3. Multiply \n 4. Divide \n 5. Power")
+
+choice <- as.integer(readline(prompt = "Choose your operation: "))
+num1 <- as.integer(readline(prompt = "Enter x value: "))
+num2 <- as.integer(readline(prompt = "Enter y value: "))
+operator <- switch (choice,"+", "-","*","/","power")
+result <- switch (choice, add(num1,num2), subract(num1,num2), multiply(num1,num2), 
+                  divide(num1,num2), power(num1,num2))
+(paste(num1, operator, num2, "=", result))
