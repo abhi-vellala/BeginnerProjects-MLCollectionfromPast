@@ -1,0 +1,247 @@
+---
+title: "Airfoil Self-Noise - UCI Machine Learning Repository"
+author: "Abhinay Krishna  Vellala"
+date: "7/18/2020"
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+\newpage
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Data Extraction.
+
+Airfoil Self-Noise dataset is a NASA data set, obtained from a series of aerodynamic and acoustic tests of two and three-dimensional airfoil blade sections conducted in an anechoic wind tunnel.
+
+Attribute Information:
+
+This problem has the following inputs:
+
+1. Frequency, in Hertzs.
+2. Angle of attack, in degrees.
+3. Chord length, in meters.
+4. Free-stream velocity, in meters per second.
+5. Suction side displacement thickness, in meters.
+
+The only output is:
+6. Scaled sound pressure level, in decibels.
+
+All the arrtibutes above determine the Pressure level in the atmosphere. 
+
+```{r, echo=TRUE}
+nasa = read.table(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/00291/airfoil_self_noise.dat")
+colnames(nasa) = c("Frequency", "AngleAttack", 
+                   "ChordLength", "Velocity", "Suction", "Pressure")
+str(nasa)
+```
+
+All the variables in the data seem to be continuous. Before, we can conclude anything, we check the correlation. 
+
+To check the relation between each variable, correlation between each variable is checked. We know that the target variable is Pressure. So, correlation between each variable with Pressure is checked. 
+
+\newpage
+
+# 2. Exploratory Data Analysis(EDA)
+
+```{r, echo=TRUE}
+
+# correlation between Frequency and Pressure
+cat("The correlation between each variable is\n")
+print(cor(nasa))
+library(corrplot)
+corrplot(cor(nasa), type = "lower", order = "original", tl.col = "black", 
+         tl.srt = 45, title = "Correlation Plot")
+corrplot(cor(nasa), method = "color", title = "Heat map")
+
+
+```
+
+From the correlation plot, it looks like there is no great correclation between each variable and target and also many negative correlations observed. Let's explore more and check the linearity of each varaible with respect to target. 
+
+```{r, echo=TRUE}
+library(ggplot2)
+library(gridExtra)
+p1 = ggplot(nasa, aes(Frequency, Pressure)) + geom_point() + ggtitle("Frequency Vs Pressure") + theme_classic()
+p2 = ggplot(nasa, aes(AngleAttack, Pressure)) + geom_point() + ggtitle("Angle attack Vs Pressure") + theme_classic()
+p3 = ggplot(nasa, aes(ChordLength, Pressure)) + geom_point() + ggtitle("Chord Length Vs Pressure") + theme_classic()
+p4 = ggplot(nasa, aes(Velocity, Pressure)) + geom_point() + ggtitle("Velocity Vs Pressure") + theme_classic()
+p5 = ggplot(nasa, aes(Suction, Pressure)) + geom_point() + ggtitle("Suction Vs Pressure") + theme_classic()
+
+grid.arrange(p1,p2,p3,p4,p5, nrow = 3)
+```
+
+
+Individually, there is no Linear dependency observed from the plot. However, we'll try using Linear regression and also check if any different model can give better predictions. 
+
+\newpage
+
+# 3. Model Building
+
+To start building the model, we initially assume to the data to be normally distributed. 
+$$P(Y=Pressure\mid X=x_1,..x_5)\sim N(\mu,\Sigma^2)$$
+
+The Likelihood function is the model we are trying to build and it will be
+$$L(\mu,\Sigma^2;x_1,..x_5)=(2\pi\Sigma^2)^{-n/2}exp\left(-\frac{1}{2\Sigma^2}\sum\limits_{j=1}^n(x_j-\mu)^2\right)$$
+
+Our goal is to maximize this Likelihood function so that the error is minimum. 
+
+Let's divide the data into train and test in the ratio of 70/30. 
+
+```{r, echo=TRUE}
+
+# Divide the data
+n = dim(nasa)[1]
+set.seed(12345)
+id = sample(1:n, floor(0.7*n))
+train = nasa[id,]
+test = nasa[-id,]
+
+```
+
+
+## 3.1 Linear Regression
+
+In Linear regression, the model likelihood is maximized by using the coefficients($\beta$) so that the error is minimum and likelihood is maximum. This is given in the Linear equation.
+
+$$Y=\beta_0+\beta_1x_1+..+\beta_5x_5$$
+
+To further simplify this, let us write, $(\beta_0,..,\beta_5)$ as $\beta$ and $x_1,..x_5$ as $X$. The above equation becomes
+$$Y=\beta X$$
+
+where X is a multivariate matrix of all the attributes given above and Y is Pressure Levels. 
+
+This Linear equation best fits Y which can help us to get the maximum likelihood of the model. To get to this, we need to minimize the error. In linear regression, the error is measured as Sum of Squared Error or Mean Squared Error or Root Mean Squared Error. In this paper, we use Root Mean Squared Error. 
+
+The optimal $\beta$ coefficients will give us the best fitted line which will give least sum of squares and RMSE. Our primary goal in the Linear regression is to determine the optimal Beta coefficients($\hat{\beta}$) which can minimize the error. 
+
+This process of regression is performed and root mean squared error is determined. 
+
+```{r, echo=TRUE}
+# Linear regression
+model = lm(Pressure ~ ., data = train)
+summary(model)
+```
+
+Every coefficient was given high significance. The residual median is about 0 and standard error not high. The model has given a best fitted line with better standard deviation. Let's predict the fitted values with test data.
+
+```{r, echo=TRUE}
+
+# prediction
+pressurePred = predict(model, newdata = test)
+sse = sum((test$Pressure - pressurePred)^2)
+mse = sse/nrow(test)
+cat("The mean square error of the model is ",mse)
+cat("\nRoot mean squared error of the model is",sqrt(mse))
+```
+
+The model has given RMSE as 4.7 which is quite low. Let's plot the observed values vs predicted to check the fianl predicted values. 
+
+```{r, echo=TRUE}
+ggplot() + geom_line(aes(1:length(test$Pressure), test$Pressure,color = "Observed")) + 
+  geom_line(aes(1:length(test$Pressure), pressurePred,color = "Predicted")) + 
+  xlab("Index") + ylab("Observed/Predicted") +
+  ggtitle("Observed Vs Predicted") + theme_classic()
+```
+
+The model did a good job in predicting the data as the observed and predicted values overlap actual values frequently. 
+
+\newpage
+
+## 3.2 Random Forest - Ensemble Method
+
+Even though, Linear regression did a good job in giving us the least error, there is still a chance of getting a better error than Linear regression. The reason is, from the plots, we did not see any linear dependency of Pressure Levels with any attribute. So, Linear regression might be a weak model. 
+
+To boost this weak model we use Ensemble method which will combine all the weak models which makes a strong prediction. One of the Ensemble method is Random Forest which uses a technique called Bagging where the data is resampled multiple times and multiple decision trees are grown. The best decision tree is the one with least error. 
+
+Here, we have modelled 50 Random Forest models by increasing the threshold of number of decision trees in each model. Increase in the number of decision trees increases the complexity of model which in turn yelid better predictions. More complex models might lead to overfitting which is also observed below.
+
+Let's build a Random Forest and check if that can predict better than Linear regression. While building Random Forest, the number of trees used for buliding Random forest is increased in (10,20,30,...,500) 
+
+```{r, echo=TRUE}
+
+## Decision tree
+library(randomForest)
+trees = seq(10,500,10)
+mseForest = vector()
+for (i in 1:length(trees)) {
+  modelForest = randomForest(train$Pressure ~ ., data = train, ntree = trees[i])
+  newpred = predict(modelForest,newdata = test)
+  sseForest = sum((newpred-test$Pressure)^2)
+  mseForest[i] = sseForest/length(newpred)  
+}
+ggplot() + geom_point(aes(trees, sqrt(mseForest)), color = "red") + 
+  geom_line(aes(trees, sqrt(mseForest)), color = "red") + 
+  xlab("Number of Trees") + ylab("MSE") + ggtitle("MSE Comparison with number of trees") + theme_classic() + ylim(0,4)
+  
+```
+
+Looks like Random forest did a better job than Linear regression as the RMSE values are below 4 from the first model. The model also stated perfroming bad. This is because of the overfitting problem discussed above.
+
+```{r, echo=TRUE}
+msetable = matrix(nrow = length(trees), ncol = 2)
+for (i in 1:length(trees)) {
+  msetable[i,1] = trees[i]
+  msetable[i,2] = mseForest[i]
+}
+t = msetable[which(msetable[,2] == min(msetable[,2])),1]
+
+cat("The minimum RMSE is",sqrt(min(msetable[,2])), "and the ideal number of 
+    trees to predict the data with this RMSE is", t)
+
+plot(modelForest, main = "Random Forest Mean Squared Error Comparison")
+```
+
+With increase in the complexity of the Random Forest model, we have achieved the best number of decision trees which can fit the data better and can give good predictions. As we can see after some iterations, the error rate has achieved converegence point. 
+
+\newpage
+
+# 4. Inference
+
+The data says, Pressure levels is a function of all the given attributes. We have created a fuction of Pressue with respect to $\beta$ coefficients and created a Linear model. But, as the model is a weak classifier for the data, we have created a Random Forest and got a better predictions for our data. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
