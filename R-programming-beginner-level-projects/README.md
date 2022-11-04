@@ -7,3 +7,5 @@ This repository contains beginner level projects using R programming
 3. Fibonacci Sequence
 4. Leap Year
 5. LCM and GCD
+
+**R Lab assignment 1 from Advanced R course at LiU**
