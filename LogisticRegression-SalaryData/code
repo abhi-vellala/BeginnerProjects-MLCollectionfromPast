@@ -1,0 +1,193 @@
+
+# Get data
+
+data <- read.csv("adult_sal.csv")
+str(data)
+
+head(data)
+
+## Index is repeated here. Hence we remove the index. 
+library(dplyr)
+data <- select(data, -X)
+head(data)
+summary(data)
+
+# Data cleaning
+
+## There are lot variables with factors. We try to remove the factors of unwanted variables. 
+
+table(data$type_employer)
+
+## There are two values in type_employer variable which is really small. We combine it into unemployed
+
+unemp <- function(job){
+  job <- as.character(job)
+  if(job == "Never-worked" | job == "Without-pay"){
+    return("Unemployed")
+  }
+  else{
+    return(job)
+  }
+}
+
+data$type_employer <- sapply(data$type_employer, unemp)
+table(data$type_employer)
+
+## Combine State and Local gov jobs into a category called SL-gov and combine self-employed jobs into a category called self-emp.
+
+gov <- function(job){
+  job <- as.character(job)
+  if(job == "State-gov" | job == "Local-gov"){
+    return("SL-gov")
+  }
+  else{
+    return(job)
+  }
+}
+
+data$type_employer <- sapply(data$type_employer, gov)
+table(data$type_employer)
+
+
+selfemp <- function(job){
+  job <- as.character(job)
+  if(job == "Self-emp-inc" | job == "Self-emp-not-inc"){
+    return("Self-emp")
+  }
+  else{
+    return(job)
+  }
+}
+
+data$type_employer <- sapply(data$type_employer, selfemp)
+table(data$type_employer)
+
+# Explore Marital column
+
+table(data$marital)
+
+## Reduce this to three groups: Married, Not-Married, Never-Married
+
+married <- function(marital){
+  marital <- as.character(marital)
+  if(marital == "Married-AF-spouse" | marital == "Married-civ-spouse" | 
+     marital == "Married-spouse-absent"){
+    return("Married")
+  }
+  else if(marital == "Divorced" | marital == "Widowed" | marital == "Separated"){
+    return("Not-Married")
+  }
+  else{
+    return(marital)
+  }
+}
+
+data$marital <- sapply(data$marital, married)
+table(data$marital)
+
+## Country 
+
+table(data$country)
+levels(data$country)
+
+Asia <- c('China','Hong','India','Iran','Cambodia','Japan', 'Laos' ,
+          'Philippines' ,'Vietnam' ,'Taiwan', 'Thailand')
+
+North.America <- c('Canada','United-States','Puerto-Rico' )
+
+Europe <- c('England' ,'France', 'Germany' ,'Greece','Holand-Netherlands','Hungary',
+            'Ireland','Italy','Poland','Portugal','Scotland','Yugoslavia')
+
+Latin.and.South.America <- c('Columbia','Cuba','Dominican-Republic','Ecuador',
+                             'El-Salvador','Guatemala','Haiti','Honduras',
+                             'Mexico','Nicaragua','Outlying-US(Guam-USVI-etc)','Peru',
+                             'Jamaica','Trinadad&Tobago')
+Other <- c('South')
+
+country <- function(country){
+  if(country %in% Asia){
+    return("Asia")
+  }
+  else if(country %in% North.America){
+    return("North.America")
+  }
+  else if(country %in% Latin.and.South.America){
+    return("Latin.and.South.America")
+  }
+  else {
+    return("Other")
+  }
+}
+
+data$country <- sapply(data$country, country)
+table(data$country)
+
+data$type_employer <- as.factor(data$type_employer)
+data$marital <- as.factor(data$marital)
+data$country <- as.factor(data$country)
+
+str(data)
+
+# Missing data
+
+## There is missing data in the data frame. It should be cleaned
+library(Amelia)
+
+data[data == "?"] = NA
+table(data$type_employer)
+
+## to determine missing data 
+missmap(data)
+
+missmap(data, y.at = c(1), y.labels = c(""), col = c("yellow", "black"))
+data <- na.omit(data)
+missmap(data)
+
+# Exploratory data analysis
+str(data)
+library(ggplot2)
+## Plot for Age w.r.t Income 
+ggplot(data, aes(x = age)) + geom_histogram(aes(fill = income), color = "black", bandwidth = 1) + 
+  theme_bw() + ggtitle("Age w.r.t Income")
+## Plot for hours per week
+head(data)
+ggplot(data, aes(x = hr_per_week)) + geom_histogram(fill = "blue", color = "black", alpha = 0.5) +
+  theme_bw() + ggtitle("Hours per week")
+
+## Rename the country column to region column to better reflect the factor levels.
+data$region <- data$country
+data <- select(data,-country)
+head(data)
+
+## barplot of region with the fill color defined by income class.
+ggplot(data, aes(x = region)) + geom_bar(aes(fill = income), color = "black") + 
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+# Build the model
+
+head(data)
+
+## Split the data into train/test
+n <- dim(data)[1]
+set.seed(12345)
+id <- sample(1:n, floor(0.7*n))
+train <- data[id,]
+test <- data[-id,]
+
+# train the model
+model <- glm(income ~ ., data = data, family = binomial(logit))
+summary(model)
+
+## Perform step method to check the most significant variables
+
+new_model <- step(model)
+
+# predict the model
+model_predict <- predict(model, newdata = test, type = "response")
+
+#class_predict <- ifelse(model_predict > 0.5, ">50K", "<=50K")
+confusion_matrix <- table(test$income, model_predict > 0.5)
+misclass <- 1 - sum(diag(confusion_matrix))/sum(confusion_matrix)
+accuracy <- 1- misclass
+
+cat("The accuracy of the model is", accuracy*100, "%")
