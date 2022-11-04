@@ -1,0 +1,25 @@
+# The length of x and y coordinates are considered as 1 with (0,0) as the center. 
+# The circle will have (0,0) as center and radius will be 1. 
+import random
+def pi_simulation():
+    print("Welcome to the Monty Carlo PI program!")
+    while True:
+        n = input("Please enter a number of points (or the letter \"q\" to quit): ")
+        if n == "q":
+            print("Thank you for choosing Monty Carlo.")
+            break
+        else:
+            n = int(n) # change the n to integer
+            c = 0 # points inside circle
+            s = 0 # points in square
+            for num in range(0,n):
+            # generating random points for x and y coordinates
+                x = random.uniform(-1,1) 
+                y = random.uniform(-1,1)
+                s = s + 1
+                 #check if the sum of xsq and ysq is greater than 1. If greater they fall outside the circle.
+                if x**2 + y**2 < 1: 
+                    c += 1
+        pi = 4*c/s
+        print(f"Using {n} point we(this time) got the following value for pi: {pi}")
+        print(f"This would mean that tau (2xPI) would be: {2*pi}")

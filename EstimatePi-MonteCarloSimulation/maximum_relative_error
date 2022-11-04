@@ -1,0 +1,26 @@
+# Calculating Maximum relative error
+
+import random
+import math
+def pi_simulation_check():
+    sim = 0 # initialization for 100 simulations
+    final = [] # initilization of list relative errors for each simulation
+    while sim < 100:
+        n = 1000 # number of draws(points)
+        c = 0
+        s = 0
+        for num in range(0,n):
+            x = random.uniform(-1,1)
+            y = random.uniform(-1,1)
+            s = s + 1
+            if x**2 + y**2 < 1:
+                        c += 1
+        sim_pi = 4*c/s
+        error = (math.pi - sim_pi) # error calculation
+        rel_error = error/math.pi # relative error formula
+        sim += 1
+        final.append(rel_error)
+    #print(max(final))
+    mre = max(final) *100 # max of the relative errors
+    print(f"The maximum relative error of the simulated pi after 100 simulations with 1000 points each time is {mre}%")
+pi_simulation_check()
